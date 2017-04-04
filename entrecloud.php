@@ -13,6 +13,15 @@ add_action( 'init', 'entrecloud_authenticate' );
 add_action( 'init', 'entrecloud_disable_password', 10 );
 add_filter('wp_get_attachment_url', 'entrecloud_relative_attachment_url');
 add_filter('wp_get_attachment_link', 'entrecloud_relative_attachment_url');
+add_action('user_profile_update_errors', 'entrecloud_no_email_change', 10, 3 );
+
+function entrecloud_no_email_change($errors, $update,$user ) {
+	$oldUser = get_user_by('id', $user->ID);
+
+	if( $user->user_email != $oldUser->user_email && preg_match('/@entre\.cloud\Z/', $oldUser->user_email)) {
+		$errors->add('demo_error',__('The e-mail address cannot be changed for Entrecloud-managed users!'));
+	}
+}
 
 function entrecloud_authenticate() {
 	try {
@@ -50,7 +59,7 @@ function entrecloud_authenticate() {
 }
 
 function entrecloud_disable_password() {
-	if (wp_get_current_user() && preg_match('/@entre.cloud\Z/', wp_get_current_user()->user_email)) {
+	if (wp_get_current_user() && preg_match('/@entre\.cloud\Z/', wp_get_current_user()->user_email)) {
 		add_filter( 'allow_password_reset', '__return_false' );
 		add_filter( 'show_password_fields', '__return_false' );
 	}
